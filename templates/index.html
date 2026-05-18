@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supertrend EA · Performance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=41">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/highcharts@11/highstock.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/highcharts@11/highcharts-more.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/highcharts@11/modules/accessibility.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── Main ───────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">
+        <span id="themeIcon">☼</span>
+      </button>
+    </header>
+
+    <!-- Title row -->
+    <section class="title-row" id="overview">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <div class="page-sub" id="periodLabel">Loading…</div>
+      </div>
+      <div class="title-actions">
+        <div class="pill" id="periodPill">— · —</div>
+      </div>
+    </section>
+
+    <!-- Strategy description -->
+    <section class="strategy-card">
+      <header class="strategy-card__head">
+        <div>
+          <div class="strategy-card__eyebrow">Strategy Logic</div>
+          <h2 class="strategy-card__title">ระบบเทรด EA Supertrend</h2>
+        </div>
+        <div class="strategy-card__meta">
+          <span class="meta-pill"><span class="meta-pill__k">ทุน</span><span class="meta-pill__v">100,000 $</span></span>
+          <span class="meta-pill"><span class="meta-pill__k">ความเสี่ยง</span><span class="meta-pill__v">5%</span></span>
+        </div>
+      </header>
+
+      <div class="strategy-rules">
+
+        <!-- Rule 1 — Entry / Exit -->
+        <article class="strategy-rule">
+          <div class="strategy-rule__num">01</div>
+          <div class="strategy-rule__body">
+            <h3 class="strategy-rule__title">Entry &nbsp;/&nbsp; Exit</h3>
+            <p class="strategy-rule__sub">จุดเข้า – ออก ตาม Supertrend</p>
+
+            <ul class="rule-points">
+              <li><span class="dot dot--bull"></span><span class="rule-points__k">Buy</span><span class="rule-points__v">ราคาทะลุ Supertrend ขึ้น</span></li>
+              <li><span class="dot dot--bear"></span><span class="rule-points__k">Sell</span><span class="rule-points__v">ราคาทะลุ Supertrend ลง</span></li>
+              <li><span class="dot dot--mute"></span><span class="rule-points__k">Exit</span><span class="rule-points__v">ปิดทันทีเมื่อ Supertrend เปลี่ยนสี <em>(ไม่มี TP ล่วงหน้า)</em></span></li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Rule 2 — Lot Size -->
+        <article class="strategy-rule">
+          <div class="strategy-rule__num">02</div>
+          <div class="strategy-rule__body strategy-rule__body--split">
+            <div class="strategy-rule__col">
+              <h3 class="strategy-rule__title">Lot Size</h3>
+              <p class="strategy-rule__sub">ขนาดไม้ &middot; กรองด้วย EMA 89</p>
+
+              <p class="strategy-rule__lead">
+                คำนวณ Lot จากความเสี่ยง <em>5%</em> แล้วปรับตามทิศทางของ EMA 89
+              </p>
+
+              <ul class="rule-points">
+                <li>
+                  <span class="dot dot--bull"></span>
+                  <span class="rule-points__k">ตามเทรนด์</span>
+                  <span class="rule-points__v">ทิศทางเดียวกับ EMA — เปิด Lot เต็ม <strong>100%</strong></span>
+                </li>
+                <li>
+                  <span class="dot dot--bear"></span>
+                  <span class="rule-points__k">สวนเทรนด์</span>
+                  <span class="rule-points__v">บังคับลด Lot ลง <strong>90%</strong> ทันที</span>
+                </li>
+              </ul>
+            </div>
+
+            <aside class="lot-drop" id="lotDrop">
+              <div class="lot-drop__alert" id="lotDropAlert">
+                <span class="lot-drop__alert-dot"></span>
+                <span>ลด lot เมื่อสวนเทรน</span>
+              </div>
+
+              <div class="lot-drop__stack" id="lotDropStack">
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+                <span class="lot-drop__bar"></span>
+              </div>
+
+              <div class="lot-drop__readout">
+                <div class="lot-drop__amt" id="lotDropAmt">1.00<small>Lot</small></div>
+                <div class="lot-drop__lbl" id="lotDropLbl">เปิด Lot เต็ม · เสี่ยง 5%</div>
+              </div>
+            </aside>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- KPI cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-head"><span>Total Return</span><span class="kpi-ico">📈</span></div>
+        <div class="kpi-value" id="kpi_totalReturn">—</div>
+        <div class="kpi-vs"><span class="kpi-vs-label">Gold</span><span class="kpi-vs-val" id="kpi_totalReturn_g">—</span></div>
+        <div class="kpi-foot"><span class="delta up" id="kpi_totalReturn_delta">—</span> vs gold</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head"><span>CAGR</span><span class="kpi-ico">👥</span></div>
+        <div class="kpi-value" id="kpi_cagr">—</div>
+        <div class="kpi-vs"><span class="kpi-vs-label">Gold</span><span class="kpi-vs-val" id="kpi_cagr_g">—</span></div>
+        <div class="kpi-foot"><span class="delta up" id="kpi_cagr_delta">—</span> vs gold</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head"><span>Max Drawdown</span><span class="kpi-ico">⚠</span></div>
+        <div class="kpi-value" id="kpi_maxdd">—</div>
+        <div class="kpi-vs"><span class="kpi-vs-label">Gold</span><span class="kpi-vs-val" id="kpi_maxdd_g">—</span></div>
+        <div class="kpi-foot"><span class="delta down" id="kpi_maxdd_delta">—</span> vs gold</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head"><span>Calmar Ratio</span><span class="kpi-ico">⌑</span></div>
+        <div class="kpi-value" id="kpi_calmar">—</div>
+        <div class="kpi-vs"><span class="kpi-vs-label">Gold</span><span class="kpi-vs-val" id="kpi_calmar_g">—</span></div>
+        <div class="kpi-foot"><span class="delta up" id="kpi_calmar_delta">—</span> vs gold</div>
+      </div>
+    </section>
+
+    <!-- Main row -->
+    <section class="row" id="compare">
+      <div class="card chart-card span-2">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Normalized Equity · Strategy vs Buy &amp; Hold Gold</div>
+            <div class="card-sub" id="alignedRangeLabel">Aligned period — both curves rebased to 100</div>
+          </div>
+          <div class="legend">
+            <span class="legend-dot strat"></span> Supertrend EA
+            <span class="legend-dot gold"></span> XAUUSD Hold
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div id="chartEquity" style="width:100%;height:100%"></div>
+          <div class="chart-shade" data-target="chartEquity">
+            <div class="chart-shade-pill">Click to interact · zoom / pan / range</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Most Active</div>
+        </div>
+        <div class="chart-wrap small"><canvas id="chartWeekday"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Raw equity vs raw gold price (dual axis) -->
+    <section class="row" id="raw">
+      <div class="card span-3">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Strategy Equity ($) vs Gold Price (XAUUSD)</div>
+            <div class="card-sub">Raw scales — left: strategy account balance · right: spot gold price</div>
+          </div>
+          <div class="legend">
+            <span class="legend-dot strat"></span> Equity ($)
+            <span class="legend-dot gold"></span> Gold (USD/oz)
+          </div>
+        </div>
+        <div class="chart-wrap large">
+          <div id="chartRaw" style="width:100%;height:100%"></div>
+          <div class="chart-shade" data-target="chartRaw">
+            <div class="chart-shade-pill">Click to interact · zoom / pan / range</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison table + Win-rate gauge -->
+    <section class="row" id="metrics">
+      <div class="card span-2">
+        <div class="card-head">
+          <div class="card-title">Strategy vs Gold — Side by Side</div>
+          <div class="card-sub" id="comparePeriodLabel">Aligned window</div>
+        </div>
+        <table class="cmp-table">
+          <thead>
+            <tr><th>Metric</th><th class="num">Supertrend EA</th><th class="num">Buy &amp; Hold Gold</th><th class="num">Edge</th></tr>
+          </thead>
+          <tbody id="cmpBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Win Rate</div>
+        </div>
+        <div class="gauge-wrap">
+          <canvas id="chartGauge"></canvas>
+          <div class="gauge-center">
+            <div class="gauge-num" id="winRateNum">—</div>
+            <div class="gauge-sub">of <span id="totalTradesNum">—</span> trades</div>
+            <div class="gauge-meta" id="winRateMeta">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gold dependence -->
+    <section class="row" id="dependence">
+      <div class="card span-3 dep-card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Strategy returns vs Gold returns — dependence</div>
+            <div class="card-sub" id="depSub">OLS regression of strategy returns on XAUUSD returns (aligned window)</div>
+          </div>
+          <div class="dep-controls">
+            <div class="seg" id="depSeg">
+              <button data-h="daily">Daily</button>
+              <button data-h="weekly">Weekly</button>
+              <button data-h="monthly" class="active">Monthly</button>
+            </div>
+            <div class="dep-tag" id="depVerdict">—</div>
+          </div>
+        </div>
+
+        <div class="dep-grid">
+          <div class="dep-tile big">
+            <div class="dep-label">R² <span class="dep-hint">variance explained by gold</span></div>
+            <div class="dep-value" id="depR2">—</div>
+            <div class="dep-bar"><div class="dep-bar-fill" id="depR2Bar"></div></div>
+            <div class="dep-foot" id="depR2Foot">—</div>
+          </div>
+
+          <div class="dep-tile">
+            <div class="dep-label">Correlation</div>
+            <div class="dep-value" id="depCorr">—</div>
+            <div class="dep-foot">Pearson r · <span id="depFreqLabel">monthly</span> returns</div>
+          </div>
+
+          <div class="dep-tile">
+            <div class="dep-label">Beta vs Gold</div>
+            <div class="dep-value" id="depBeta">—</div>
+            <div class="dep-foot">1% gold return → β% strategy return</div>
+          </div>
+
+          <div class="dep-tile">
+            <div class="dep-label">Alpha (annualised)</div>
+            <div class="dep-value" id="depAlpha">—</div>
+            <div class="dep-foot">excess return after stripping gold beta</div>
+          </div>
+        </div>
+
+        <table class="dep-table">
+          <thead>
+            <tr><th>Horizon</th><th class="num">n</th><th class="num">R²</th><th class="num">Correlation</th><th class="num">Beta</th><th class="num">Alpha (annual)</th></tr>
+          </thead>
+          <tbody id="depTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Drawdown + Monthly heatmap -->
+    <section class="row" id="drawdown">
+      <div class="card span-2">
+        <div class="card-head">
+          <div class="card-title">Drawdown — Underwater Curve</div>
+          <div class="card-sub" id="ddPeriodLabel">Strategy vs Gold (peak-to-trough %)</div>
+        </div>
+        <div class="chart-wrap">
+          <div id="chartDD" style="width:100%;height:100%"></div>
+          <div class="chart-shade" data-target="chartDD">
+            <div class="chart-shade-pill">Click to interact · zoom / pan / range</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="trades">
+        <div class="card-head">
+          <div class="card-title">Trade Stats</div>
+        </div>
+        <ul class="stat-list" id="tradeStats"></ul>
+      </div>
+    </section>
+
+    <!-- Monte Carlo (parametric) -->
+    <section class="row" id="montecarlo">
+      <div class="card span-3">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Monte Carlo Simulation</div>
+            <div class="card-sub" id="mcSub">10,000 random paths projected forward from your trade statistics.</div>
+          </div>
+        </div>
+
+        <!-- Envelope chart (static / non-interactive) -->
+        <div class="chart-wrap large">
+          <div id="chartMC" style="width:100%;height:100%"></div>
+        </div>
+
+        <!-- Scenario cards (under chart) -->
+        <div class="mc-scenarios mc-scenarios-under">
+          <div class="mc-scenario mc-best">
+            <div class="mc-scenario-head">
+              <span class="mc-scenario-tag">★ Best Case</span>
+              <span class="mc-scenario-pct">95<sup>th</sup> pct</span>
+            </div>
+            <div class="mc-scenario-val" id="mcBestFinal">—</div>
+            <div class="mc-scenario-ret" id="mcBestRet">—</div>
+            <ul class="mc-scenario-list">
+              <li><span>Max drawdown</span>   <b id="mcBestDD">—</b></li>
+              <li><span>Max win streak</span> <b id="mcBestWins">—</b></li>
+              <li><span>Max loss streak</span><b id="mcBestLosses">—</b></li>
+              <li><span>Avg win streak</span> <b id="mcBestAvgWins">—</b></li>
+              <li><span>Avg loss streak</span><b id="mcBestAvgLosses">—</b></li>
+              <li><span>Win rate</span>       <b id="mcBestWinPct">—</b></li>
+              <li><span>Avg R:R</span>        <b id="mcBestRR">—</b></li>
+              <li><span>Profit factor</span>  <b id="mcBestPF">—</b></li>
+            </ul>
+          </div>
+
+          <div class="mc-scenario mc-mid">
+            <div class="mc-scenario-head">
+              <span class="mc-scenario-tag">● Most Possible</span>
+              <span class="mc-scenario-pct">Median</span>
+            </div>
+            <div class="mc-scenario-val" id="mcMidFinal">—</div>
+            <div class="mc-scenario-ret" id="mcMidRet">—</div>
+            <ul class="mc-scenario-list">
+              <li><span>Max drawdown</span>   <b id="mcMidDD">—</b></li>
+              <li><span>Max win streak</span> <b id="mcMidWins">—</b></li>
+              <li><span>Max loss streak</span><b id="mcMidLosses">—</b></li>
+              <li><span>Avg win streak</span> <b id="mcMidAvgWins">—</b></li>
+              <li><span>Avg loss streak</span><b id="mcMidAvgLosses">—</b></li>
+              <li><span>Win rate</span>       <b id="mcMidWinPct">—</b></li>
+              <li><span>Avg R:R</span>        <b id="mcMidRR">—</b></li>
+              <li><span>Profit factor</span>  <b id="mcMidPF">—</b></li>
+            </ul>
+          </div>
+
+          <div class="mc-scenario mc-worst">
+            <div class="mc-scenario-head">
+              <span class="mc-scenario-tag">▼ Worst Case</span>
+              <span class="mc-scenario-pct">5<sup>th</sup> pct</span>
+            </div>
+            <div class="mc-scenario-val" id="mcWorstFinal">—</div>
+            <div class="mc-scenario-ret" id="mcWorstRet">—</div>
+            <ul class="mc-scenario-list">
+              <li><span>Max drawdown</span>   <b id="mcWorstDD">—</b></li>
+              <li><span>Max win streak</span> <b id="mcWorstWins">—</b></li>
+              <li><span>Max loss streak</span><b id="mcWorstLosses">—</b></li>
+              <li><span>Avg win streak</span> <b id="mcWorstAvgWins">—</b></li>
+              <li><span>Avg loss streak</span><b id="mcWorstAvgLosses">—</b></li>
+              <li><span>Win rate</span>       <b id="mcWorstWinPct">—</b></li>
+              <li><span>Avg R:R</span>        <b id="mcWorstRR">—</b></li>
+              <li><span>Profit factor</span>  <b id="mcWorstPF">—</b></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-foot">Educational risk-analysis tool · not investment advice.</div>
+      </div>
+    </section>
+
+    <section class="row" id="monthly">
+      <div class="card span-3">
+        <div class="card-head">
+          <div class="card-title">Monthly Returns Heatmap</div>
+          <div class="card-sub">Strategy balance — month-over-month %</div>
+        </div>
+        <div id="heatmap" class="heatmap"></div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Built from <code>testergraph.report.2026.05.17.csv</code> &middot; <code>XAUUSD_H4_TradingView.csv</code></span>
+      <span>© 2026 Supertrend EA</span>
+    </footer>
+  </main>
+</div>
+
+<script defer src="{{ url_for('static', filename='js/dashboard.js') }}?v=30"></script>
+
+<!-- Rule 02 · lot-drop animation (top → bottom) -->
+<script>
+window.addEventListener('load', () => {
+  if (typeof gsap === 'undefined') return;
+  const stack   = document.getElementById('lotDropStack');
+  const alertEl = document.getElementById('lotDropAlert');
+  const amt     = document.getElementById('lotDropAmt');
+  const lbl     = document.getElementById('lotDropLbl');
+  if (!stack || !amt) return;
+
+  const bars = Array.from(stack.querySelectorAll('.lot-drop__bar'));
+  const LOOP_PAUSE = 2.8; // seconds to hold the reduced state before resetting
+  const GREEN_HOLD = 2.2; // seconds to show full-lot (green) state before dropping
+
+  function reset() {
+    bars.forEach(b => {
+      gsap.set(b, { x: 0, y: 0, rotation: 0, opacity: 1, scale: 1 });
+      b.classList.remove('is-bear');
+    });
+    alertEl.classList.remove('is-show');
+    amt.classList.remove('is-bear');
+    amt.innerHTML = '1.00<small>Lot</small>';
+    lbl.textContent = 'เปิด Lot เต็ม · เสี่ยง 5%';
+  }
+
+  function play() {
+    reset();
+    const tl = gsap.timeline({
+      onComplete() { gsap.delayedCall(LOOP_PAUSE, play); }
+    });
+
+    // 1. "ลด lot เมื่อสวนเทรน" badge fades in (after green hold)
+    tl.add(() => alertEl.classList.add('is-show'), GREEN_HOLD);
+
+    // 2. Top 9 bars drop (column-reverse: index 0 = bottom, 9 = top)
+    for (let i = 9; i >= 1; i--) {
+      const stagger = (9 - i) * 0.12;
+      tl.to(bars[i], {
+        y: 220 + Math.random() * 40,
+        x: (Math.random() - 0.5) * 40,
+        rotation: (Math.random() - 0.5) * 50,
+        opacity: 0,
+        duration: 1.0,
+        ease: 'power2.in'
+      }, GREEN_HOLD + 0.6 + stagger);
+    }
+
+    // 3. Bottom bar turns red + elastic pulse
+    tl.add(() => bars[0].classList.add('is-bear'), '>-0.55')
+      .to(bars[0], { scale: 1.18, duration: 0.36, ease: 'power2.out' }, '<')
+      .to(bars[0], { scale: 1,    duration: 0.75, ease: 'elastic.out(1, 0.5)' });
+
+    // 4. Lot counter ticks 1.00 → 0.10
+    const obj = { n: 1.00 };
+    tl.to(obj, {
+      n: 0.10, duration: 1.5, ease: 'power2.inOut',
+      onUpdate() { amt.innerHTML = obj.n.toFixed(2) + '<small>Lot</small>'; }
+    }, '-=2.2');
+    tl.add(() => {
+      amt.classList.add('is-bear');
+      lbl.textContent = 'บังคับลด 90% · เสี่ยง 0.5%';
+    }, '<.5');
+  }
+
+  // Start looping when the panel scrolls into view
+  if (window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.create({
+      trigger: stack, start: 'top 78%', onEnter: play, once: true
+    });
+  } else {
+    setTimeout(play, 500);
+  }
+});
+</script>
+</body>
+</html>

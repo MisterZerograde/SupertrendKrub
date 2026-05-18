@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lot Reduction · Interactive Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+:root{
+  --bg:#0c0f16; --bg-elev:#141923; --bg-soft:#1a202c;
+  --text:#e9ecf3; --text-dim:#97a0b5; --text-mute:#6c7387;
+  --border:#232a36;
+  --success:#14b87a; --success-glow:rgba(46,225,154,.42);
+  --danger:#ef4f4f; --danger-glow:rgba(255,138,138,.42);
+  --warning:#f59e0b; --gold:#f2b43a;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
+
+.wrap{max-width:1280px;margin:0 auto;padding:40px 32px 80px}
+
+/* ─ Top hero ─ */
+.hero{margin-bottom:48px}
+.hero__eyebrow{
+  font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--text-mute);font-weight:500;margin-bottom:14px;
+}
+.hero__title{
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
+  font-size:44px;letter-spacing:-0.02em;line-height:1.05;margin:0 0 14px;
+}
+.hero__title em{font-style:normal;color:var(--danger)}
+.hero__sub{font-size:16px;color:var(--text-dim);max-width:640px;line-height:1.55;margin:0}
+.hero__tag{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:18px;padding:6px 14px;border-radius:999px;
+  background:rgba(239,79,79,.08);border:1px solid rgba(239,79,79,.22);
+  font-size:12px;font-weight:500;color:#ff9a9a;letter-spacing:.04em
+}
+.hero__tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--danger);
+  box-shadow:0 0 12px var(--danger)}
+
+/* ─ Demo card ─ */
+.demos{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:980px){.demos{grid-template-columns:1fr}}
+.demo{
+  background:var(--bg-elev);border:1px solid var(--border);
+  border-radius:var(--radius);padding:26px 26px 22px;
+  display:flex;flex-direction:column;min-height:520px;position:relative;overflow:hidden;
+}
+.demo__num{
+  position:absolute;top:18px;right:22px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text-mute);letter-spacing:.18em;
+}
+.demo__eyebrow{
+  font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--text-mute);font-weight:500;margin-bottom:8px;
+}
+.demo__title{
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
+  font-size:22px;letter-spacing:-0.01em;margin:0 0 6px;
+}
+.demo__desc{font-size:13px;color:var(--text-dim);margin:0 0 18px;line-height:1.5}
+.demo__stage{
+  flex:1;background:linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+  border:1px solid #1d2330;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;min-height:280px;
+}
+.demo__cta{
+  margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.btn{
+  appearance:none;background:linear-gradient(180deg,#1e2533 0%,#161c27 100%);
+  border:1px solid #2a3344;color:var(--text);
+  padding:10px 18px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .2s ease;letter-spacing:.01em;
+}
+.btn:hover{border-color:#3a4458;transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.btn--accent{background:linear-gradient(180deg,#14b87a 0%,#0e9a64 100%);
+  border-color:transparent;color:#fff;font-weight:600;
+  box-shadow:0 6px 20px rgba(20,184,122,.28)}
+.btn--accent:hover{box-shadow:0 10px 28px rgba(20,184,122,.42)}
+.demo__hint{font-size:11.5px;color:var(--text-mute);font-family:'JetBrains Mono',monospace;letter-spacing:.04em}
+
+/* ─ Demo 1: The 90% Cut (shatter) ─ */
+#stage1{flex-direction:column;gap:18px;padding:24px 0}
+.bars-col{display:flex;flex-direction:column;gap:5px;position:relative}
+.bar{
+  width:96px;height:18px;border-radius:5px;
+  background:linear-gradient(180deg,#25d68f 0%,#14b87a 55%,#0e9a64 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.18),
+    0 4px 14px rgba(20,184,122,.22);
+  position:relative;will-change:transform,opacity;
+}
+.bar.is-red{
+  background:linear-gradient(180deg,#ff7d7d 0%,#ef4f4f 55%,#d63838 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(0,0,0,.18),
+    0 4px 14px rgba(239,79,79,.32);
+}
+.shatter-stat{
+  position:absolute;left:120%;top:50%;transform:translateY(-50%);
+  white-space:nowrap;font-family:'JetBrains Mono',monospace
+}
+.shatter-stat__pct{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:46px;font-weight:300;
+  letter-spacing:-0.02em;line-height:1;color:var(--success);font-variant-numeric:tabular-nums;
+}
+.shatter-stat__pct.is-bear{color:var(--danger)}
+.shatter-stat__pct small{font-size:18px;opacity:.55;margin-left:2px;font-weight:400}
+.shatter-stat__lbl{
+  font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--text-mute);
+  margin-top:6px;
+}
+.alert-flash{
+  position:absolute;top:18px;left:50%;transform:translateX(-50%) translateY(-10px);
+  padding:7px 14px;border-radius:999px;
+  background:rgba(239,79,79,.12);border:1px solid rgba(239,79,79,.32);
+  color:#ff9a9a;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  opacity:0;pointer-events:none;
+}
+
+/* ─ Demo 2: Lot on the Table ─ */
+#stage2{padding:30px;align-items:flex-end;justify-content:center}
+.cash-col{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:1}
+.cash-stack{
+  display:flex;flex-direction:column-reverse;gap:3px;height:200px;justify-content:flex-start;
+  position:relative;z-index:1;
+}
+.cash{
+  width:78px;height:14px;border-radius:3px;
+  background:linear-gradient(180deg,#3ad37e 0%,#22a564 55%,#168148 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(0,0,0,.2),
+    0 2px 6px rgba(20,184,122,.18);
+  position:relative;will-change:transform,opacity;
+}
+.cash-label{
+  text-align:center;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text-mute);letter-spacing:.14em;text-transform:uppercase;
+}
+.cash-amt{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:600;
+  color:var(--success);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;
+  position:relative;z-index:2;background:linear-gradient(180deg,#0e131c 0%,#0a0e15 100%);
+  padding:2px 10px;border-radius:6px;
+}
+.cash-amt.is-bear{color:var(--danger)}
+.cash-amt small{font-size:14px;opacity:.55;font-weight:400;margin-left:2px;text-transform:uppercase;letter-spacing:.12em}
+
+/* ─ Demo 3: Reduction Slider ─ */
+#stage3{flex-direction:column;gap:22px;padding:28px}
+.slider-row{display:flex;align-items:center;gap:24px;width:100%;justify-content:center}
+.slider-meta{display:flex;flex-direction:column;gap:6px;min-width:160px}
+.slider-meta__k{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-mute);font-weight:500}
+.slider-meta__v{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:600;
+  color:var(--success);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;line-height:1;
+}
+.slider-meta__v small{font-size:14px;opacity:.55;font-weight:400;margin-left:2px}
+.slider-bars{
+  display:flex;flex-direction:column;gap:4px;align-items:center;position:relative;
+  padding:8px 0
+}
+.slider-bars .bar{width:84px;height:16px;transition:opacity .25s ease, transform .25s ease}
+.slider-row{flex-direction:column;align-items:center}
+.slider-control{width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.slider-range{
+  appearance:none;width:100%;height:6px;border-radius:999px;
+  background:linear-gradient(90deg,var(--danger) 0%,var(--warning) 50%,var(--success) 100%);
+  outline:none;cursor:grab
+}
+.slider-range:active{cursor:grabbing}
+.slider-range::-webkit-slider-thumb{
+  appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;border:3px solid var(--success);
+  box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:grab;
+}
+.slider-zone{
+  display:flex;justify-content:space-between;width:100%;
+  font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-mute);
+}
+.slider-meta-row{display:flex;gap:36px;align-items:center}
+.slider-meta-row .slider-meta{align-items:center;text-align:center}
+
+/* ─ Demo 4: Before/After Replay ─ */
+#stage4{padding:24px;gap:18px}
+.replay-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%;height:100%;align-items:stretch}
+.replay-side{
+  display:flex;flex-direction:column;gap:10px;padding:18px 16px;
+  background:#0a0e15;border-radius:10px;border:1px solid #1d2330;
+  position:relative;overflow:hidden;
+}
+.replay-side__tag{
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--text-mute);font-weight:600
+}
+.replay-side__title{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;
+  margin:0;letter-spacing:-0.005em;
+}
+.replay-side__title.is-bull{color:var(--success)}
+.replay-side__title.is-bear{color:var(--danger)}
+.replay-bal{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-0.01em;margin-top:6px
+}
+.replay-delta{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;height:18px}
+.replay-delta.is-bull{color:var(--success)}
+.replay-delta.is-bear{color:var(--danger)}
+.replay-chart{
+  flex:1;min-height:90px;margin-top:8px;
+  position:relative;
+}
+.replay-chart svg{width:100%;height:100%;display:block}
+.replay-path{
+  fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1000;stroke-dashoffset:1000;
+}
+.replay-path.is-bull{stroke:var(--success)}
+.replay-path.is-bear{stroke:var(--danger)}
+.replay-fill{opacity:0}
+.replay-fill.is-bull{fill:url(#gBull)}
+.replay-fill.is-bear{fill:url(#gBear)}
+
+/* ─ Pick CTA ─ */
+.pick-bar{
+  margin-top:32px;padding:20px 26px;background:var(--bg-elev);
+  border:1px solid var(--border);border-radius:var(--radius);
+  display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;
+}
+.pick-bar__txt{font-size:13.5px;color:var(--text-dim)}
+.pick-bar__txt strong{color:var(--text);font-weight:600}
+.pick-bar__btns{display:flex;gap:8px;flex-wrap:wrap}
+.pick-pill{
+  padding:8px 14px;border-radius:999px;font-size:12px;font-weight:500;
+  background:var(--bg-soft);border:1px solid var(--border);color:var(--text-dim);
+  cursor:pointer;transition:all .2s ease;font-family:inherit;
+}
+.pick-pill:hover{border-color:var(--success);color:var(--text)}
+
+/* tiny shake hint */
+@keyframes nudge {
+  0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}
+}
+.nudge{animation:nudge .4s ease}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero__eyebrow">Supertrend EA · Animation Concepts</div>
+    <h1 class="hero__title">Lot Reduction · <em>Pick your story</em></h1>
+    <p class="hero__sub">
+      Four interactive ways to tell one moment: <em>"EA detected counter-trend → cut lot size by 90%."</em>
+      Click each demo to feel the animation, then pick the one you want wired into the main dashboard.
+    </p>
+    <span class="hero__tag">EMA89 filter · 1.00 → 0.10 Lot · 5% → 0.5% risk</span>
+  </section>
+
+  <!-- 4 Demos -->
+  <div class="demos">
+
+    <!-- ─ Demo 1: The 90% Cut ─ -->
+    <article class="demo">
+      <span class="demo__num">01 / 04</span>
+      <div class="demo__eyebrow">Concept · Cinematic</div>
+      <h2 class="demo__title">The 90% Cut</h2>
+      <p class="demo__desc">9 of 10 bars violently shatter and fall away when EMA89 flips. One lone red bar pulses — survival mode.</p>
+      <div class="demo__stage" id="stage1">
+        <div class="alert-flash" id="alert1">⚠ Counter-trend Detected</div>
+        <div class="bars-col" id="barsCol1">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span>
+          <div class="shatter-stat">
+            <div class="shatter-stat__pct" id="pct1">100<small>%</small></div>
+            <div class="shatter-stat__lbl" id="lbl1">Full Lot</div>
+          </div>
+        </div>
+      </div>
+      <div class="demo__cta">
+        <span class="demo__hint">Click → trigger reduction</span>
+        <button class="btn btn--accent" onclick="runShatter()">▶ Play</button>
+      </div>
+    </article>
+
+    <!-- ─ Demo 2: Lot on the Table ─ -->
+    <article class="demo">
+      <span class="demo__num">02 / 04</span>
+      <div class="demo__eyebrow">Concept · Physical</div>
+      <h2 class="demo__title">Lot on the Table</h2>
+      <p class="demo__desc">1.00 Lot stacked as 10 units. Counter-trend hits → 9 units drop away. Only 0.10 Lot remains in play.</p>
+      <div class="demo__stage" id="stage2">
+        <div class="cash-col">
+          <div class="cash-stack" id="cashStackL"></div>
+          <div class="cash-amt" id="amtL">1.00<small> Lot</small></div>
+          <div class="cash-label">Position Size</div>
+        </div>
+      </div>
+      <div class="demo__cta">
+        <span class="demo__hint">Click → trigger filter</span>
+        <button class="btn btn--accent" onclick="runLot()">▶ Play</button>
+      </div>
+    </article>
+
+    <!-- ─ Demo 3: Reduction Slider ─ -->
+    <article class="demo">
+      <span class="demo__num">03 / 04</span>
+      <div class="demo__eyebrow">Concept · Interactive</div>
+      <h2 class="demo__title">Reduction Slider</h2>
+      <p class="demo__desc">Drag the slider yourself. Bars, lot size, risk, and dollar amount all react live. You control the story.</p>
+      <div class="demo__stage" id="stage3">
+        <div class="slider-bars" id="sliderBars">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+        <div class="slider-meta-row">
+          <div class="slider-meta"><span class="slider-meta__k">Lot</span><span class="slider-meta__v" id="sLot">1.00</span></div>
+          <div class="slider-meta"><span class="slider-meta__k">Risk</span><span class="slider-meta__v" id="sRisk">5.0<small>%</small></span></div>
+          <div class="slider-meta"><span class="slider-meta__k">$ Exposed</span><span class="slider-meta__v" id="sUsd">$5,000</span></div>
+        </div>
+        <div class="slider-control">
+          <input type="range" min="10" max="100" value="100" step="10" class="slider-range" id="slider">
+          <div class="slider-zone"><span>10% (Filter ON)</span><span>100% (Filter OFF)</span></div>
+        </div>
+      </div>
+      <div class="demo__cta">
+        <span class="demo__hint">Drag the slider ↔</span>
+        <button class="btn" onclick="animateSlider()">Auto-Demo</button>
+      </div>
+    </article>
+
+    <!-- ─ Demo 4: Before/After Replay ─ -->
+    <article class="demo">
+      <span class="demo__num">04 / 04</span>
+      <div class="demo__eyebrow">Concept · Educational</div>
+      <h2 class="demo__title">Before / After Replay</h2>
+      <p class="demo__desc">One losing trade replayed twice. Without filter: account drops $5k. With filter: just $500. Side-by-side proof.</p>
+      <div class="demo__stage" id="stage4">
+        <div class="replay-split">
+          <div class="replay-side">
+            <div class="replay-side__tag">Without Filter</div>
+            <h3 class="replay-side__title is-bear">Same trade · 1.00 Lot</h3>
+            <div class="replay-bal" id="balL">$100,000</div>
+            <div class="replay-delta is-bear" id="deltaL"></div>
+            <div class="replay-chart">
+              <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="gBear" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#ef4f4f" stop-opacity=".38"/>
+                    <stop offset="1" stop-color="#ef4f4f" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path id="fillL" class="replay-fill is-bear" d="M0,30 L40,32 L80,28 L120,40 L160,60 L200,72 L200,80 L0,80 Z"/>
+                <path id="pathL" class="replay-path is-bear" d="M0,30 L40,32 L80,28 L120,40 L160,60 L200,72"/>
+              </svg>
+            </div>
+          </div>
+          <div class="replay-side">
+            <div class="replay-side__tag">With EA Filter</div>
+            <h3 class="replay-side__title is-bull">Same trade · 0.10 Lot</h3>
+            <div class="replay-bal" id="balR">$100,000</div>
+            <div class="replay-delta is-bear" id="deltaR"></div>
+            <div class="replay-chart">
+              <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="gBull" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#14b87a" stop-opacity=".34"/>
+                    <stop offset="1" stop-color="#14b87a" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path id="fillR" class="replay-fill is-bull" d="M0,30 L40,30 L80,29 L120,31 L160,33 L200,35 L200,80 L0,80 Z"/>
+                <path id="pathR" class="replay-path is-bull" d="M0,30 L40,30 L80,29 L120,31 L160,33 L200,35"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="demo__cta">
+        <span class="demo__hint">Click → replay both at once</span>
+        <button class="btn btn--accent" onclick="runReplay()">▶ Replay</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Pick CTA -->
+  <div class="pick-bar">
+    <div class="pick-bar__txt">
+      <strong>Pick one</strong> — tell me which concept and I'll wire it into the main dashboard's Rule 02 panel.
+    </div>
+    <div class="pick-bar__btns">
+      <button class="pick-pill" onclick="alert('Pick: The 90% Cut\\n\\nTell Claude: \\\"Use Demo 1\\\"')">① The 90% Cut</button>
+      <button class="pick-pill" onclick="alert('Pick: Money on the Table\\n\\nTell Claude: \\\"Use Demo 2\\\"')">② Money on Table</button>
+      <button class="pick-pill" onclick="alert('Pick: Reduction Slider\\n\\nTell Claude: \\\"Use Demo 3\\\"')">③ Reduction Slider</button>
+      <button class="pick-pill" onclick="alert('Pick: Before/After Replay\\n\\nTell Claude: \\\"Use Demo 4\\\"')">④ Before/After</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─ Build lot stack dynamically ─ */
+const stackL = document.getElementById('cashStackL');
+for (let i=0;i<10;i++){
+  const c=document.createElement('span');c.className='cash';stackL.appendChild(c);
+}
+
+/* ─ Demo 1: The 90% Cut ─ */
+function runShatter(){
+  const bars = document.querySelectorAll('#barsCol1 .bar');
+  const pct = document.getElementById('pct1');
+  const lbl = document.getElementById('lbl1');
+  const alert = document.getElementById('alert1');
+
+  // reset
+  gsap.set(bars,{x:0,y:0,opacity:1,rotation:0,scale:1});
+  bars.forEach(b=>b.classList.remove('is-red'));
+  pct.textContent='100'; pct.innerHTML='100<small>%</small>'; pct.classList.remove('is-bear');
+  lbl.textContent='Full Lot';
+  gsap.set(alert,{opacity:0,y:-10});
+
+  const tl = gsap.timeline();
+  tl.to(alert,{opacity:1,y:0,duration:.3,ease:'power2.out'},0)
+    .to(alert,{x:[-3,3,-2,2,0],duration:.4,ease:'power1.inOut'},0.2);
+
+  // shatter top 9 bars one by one
+  for (let i=0;i<9;i++){
+    const b = bars[i];
+    tl.to(b, {
+      x: (Math.random()-0.5)*240,
+      y: 80 + Math.random()*100,
+      rotation: (Math.random()-0.5)*120,
+      opacity: 0,
+      duration: .55,
+      ease: 'power2.in'
+    }, 0.45 + i*0.07);
+  }
+
+  // last bar turns red and pulses
+  tl.add(()=>bars[9].classList.add('is-red'), '+=.05')
+    .to(bars[9], {scale:1.18, duration:.22, ease:'power2.out'})
+    .to(bars[9], {scale:1, duration:.45, ease:'elastic.out(1,.5)'});
+
+  // counter ticks 100 → 10
+  const obj = {n:100};
+  tl.to(obj, {
+    n:10, duration:.85, ease:'power2.inOut',
+    onUpdate(){ pct.innerHTML = Math.round(obj.n) + '<small>%</small>'; }
+  }, '-=1.1');
+  tl.add(()=>{pct.classList.add('is-bear');lbl.textContent='Reduced · 0.10 Lot'},'<.5');
+}
+
+/* ─ Demo 2: Lot on the Table (top → bottom drop) ─ */
+function runLot(){
+  const cashesL = stackL.querySelectorAll('.cash');
+  // Reset all bars to starting position
+  cashesL.forEach(c=>{gsap.set(c,{x:0,y:0,opacity:1,scale:1,rotation:0})});
+  const amt = document.getElementById('amtL');
+  amt.innerHTML = '1.00<small> Lot</small>';
+  amt.classList.remove('is-bear');
+
+  const tl = gsap.timeline();
+
+  // Drop top 9 lot units (DOM uses column-reverse, so top is index 9 down to 1).
+  // Bottom unit (index 0) stays as the 0.10 Lot remainder.
+  for (let i=9;i>=1;i--){
+    const stagger = (9-i)*0.07; // top falls first
+    tl.to(cashesL[i], {
+      y: 180 + Math.random()*40,
+      x: (Math.random()-0.5)*36,
+      rotation: (Math.random()-0.5)*45,
+      opacity: 0,
+      duration: .55,
+      ease: 'power2.in'
+    }, .25 + stagger);
+  }
+
+  // Lot counter ticks 1.00 → 0.10
+  const obj = {n:1.00};
+  tl.to(obj, {n:0.10, duration:1.0, ease:'power2.inOut',
+    onUpdate(){ amt.innerHTML = obj.n.toFixed(2) + '<small> Lot</small>'; }
+  }, .35);
+  tl.add(()=>amt.classList.add('is-bear'),'>.05');
+}
+
+/* ─ Demo 3: Reduction Slider (interactive) ─ */
+const slider = document.getElementById('slider');
+const sliderBars = document.querySelectorAll('#sliderBars .bar');
+function applySlider(pct){
+  // pct is 10..100 in steps of 10
+  const visible = Math.round(pct/10); // 1..10
+  sliderBars.forEach((b,i)=>{
+    const show = i >= (10-visible);
+    b.style.opacity = show ? 1 : 0.08;
+    b.style.transform = show ? 'scaleY(1)' : 'scaleY(.3)';
+    b.classList.toggle('is-red', visible <= 3 && show);
+  });
+  const lot = (pct/100).toFixed(2);
+  const risk = (pct/100*5).toFixed(1);
+  const usd = Math.round(pct/100*5000);
+  document.getElementById('sLot').textContent = lot;
+  document.getElementById('sRisk').innerHTML = risk+'<small>%</small>';
+  document.getElementById('sUsd').textContent = '$'+usd.toLocaleString();
+  // color shift
+  const color = pct >= 70 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--danger)';
+  document.getElementById('sLot').style.color = color;
+  document.getElementById('sRisk').style.color = color;
+  document.getElementById('sUsd').style.color = color;
+}
+slider.addEventListener('input', e => applySlider(+e.target.value));
+applySlider(100);
+
+function animateSlider(){
+  const tl = gsap.timeline();
+  const obj = {v:+slider.value};
+  tl.to(obj,{v:100,duration:.6,ease:'power2.out',
+    onUpdate(){slider.value=obj.v;applySlider(Math.round(obj.v/10)*10)}})
+    .to(obj,{v:10,duration:1.1,ease:'power2.inOut',
+      onUpdate(){slider.value=obj.v;applySlider(Math.round(obj.v/10)*10)}}, '+=.4')
+    .to(obj,{v:100,duration:.9,ease:'power2.inOut',
+      onUpdate(){slider.value=obj.v;applySlider(Math.round(obj.v/10)*10)}}, '+=.4');
+}
+
+/* ─ Demo 4: Before/After Replay ─ */
+function runReplay(){
+  // reset
+  gsap.set('#pathL,#pathR',{strokeDashoffset:1000});
+  gsap.set('#fillL,#fillR',{opacity:0});
+  document.getElementById('balL').textContent='$100,000';
+  document.getElementById('balR').textContent='$100,000';
+  document.getElementById('deltaL').textContent='';
+  document.getElementById('deltaR').textContent='';
+
+  // measure paths
+  const pL = document.getElementById('pathL');
+  const pR = document.getElementById('pathR');
+  const lenL = pL.getTotalLength(); const lenR = pR.getTotalLength();
+  gsap.set(pL,{strokeDasharray:lenL,strokeDashoffset:lenL});
+  gsap.set(pR,{strokeDasharray:lenR,strokeDashoffset:lenR});
+
+  const tl = gsap.timeline();
+  tl.to([pL,pR],{strokeDashoffset:0,duration:2.2,ease:'power1.inOut'},0)
+    .to(['#fillL','#fillR'],{opacity:1,duration:1,ease:'power1.out'},1.4);
+
+  // animate balance counters in parallel
+  const oL = {n:100000}, oR = {n:100000};
+  tl.to(oL,{n:95000,duration:2.2,ease:'power1.inOut',
+    onUpdate(){
+      document.getElementById('balL').textContent='$'+Math.round(oL.n).toLocaleString();
+      document.getElementById('deltaL').textContent='-$'+Math.round(100000-oL.n).toLocaleString()+' (-'+((100000-oL.n)/1000).toFixed(2)+'%)';
+    }
+  },0);
+  tl.to(oR,{n:99500,duration:2.2,ease:'power1.inOut',
+    onUpdate(){
+      document.getElementById('balR').textContent='$'+Math.round(oR.n).toLocaleString();
+      document.getElementById('deltaR').textContent='-$'+Math.round(100000-oR.n).toLocaleString()+' (-'+((100000-oR.n)/1000).toFixed(2)+'%)';
+    }
+  },0);
+}
+
+/* Auto-play Demo 1 once on load to draw attention */
+window.addEventListener('load', ()=>{
+  setTimeout(runShatter, 700);
+});
+</script>
+</body>
+</html>
