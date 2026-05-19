@@ -615,7 +615,6 @@ function renderDependence() {
       return `<tr${active}>
         <td>${label}</td>
         <td class="num">${d.n ?? "—"}</td>
-        <td class="num">${fmtNum(d.r_squared, 4)}</td>
         <td class="num">${fmtNum(d.correlation, 3)}</td>
         <td class="num">${fmtNum(d.beta, 2)}</td>
         <td class="num">${fmtPct(d.alpha_annual)}</td>
@@ -645,7 +644,6 @@ function renderDepHorizon(h) {
   const beta  = d.beta         ?? 0;
   const alpha = d.alpha_annual ?? 0;
 
-  setText("depR2",    fmtNum(r2, 3));
   setText("depCorr",  fmtNum(corr, 3));
   setText("depBeta",  fmtNum(beta, 2));
   setText("depAlpha", fmtPct(alpha));
@@ -653,9 +651,6 @@ function renderDepHorizon(h) {
 
   setText("depSub",
     `OLS regression of ${h} strategy returns on ${h} XAUUSD returns · n = ${d.n ?? "—"} observations`);
-
-  const bar = document.getElementById("depR2Bar");
-  if (bar) bar.style.width = (Math.max(0, Math.min(1, r2)) * 100).toFixed(1) + "%";
 
   let verdict, hint, cls;
   if (r2 < 0.15) {
@@ -677,7 +672,6 @@ function renderDepHorizon(h) {
   }
   const tag = document.getElementById("depVerdict");
   if (tag) { tag.textContent = verdict; tag.className = "dep-tag " + cls; }
-  setText("depR2Foot", `${(r2 * 100).toFixed(1)}% of variance · ${hint}`);
 }
 
 /* ── Win-rate gauge ─────────────────────────────────────────── */
