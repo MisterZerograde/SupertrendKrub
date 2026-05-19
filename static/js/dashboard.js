@@ -165,8 +165,8 @@ async function boot() {
     if (typeof Chart === "undefined")      { showError("Chart.js failed to load (CDN blocked?)"); return; }
     if (typeof Highcharts === "undefined") { showError("Highcharts failed to load (CDN blocked?)"); return; }
 
-    console.log("[dashboard] fetching /api/data");
-    const res  = await fetch("/api/data", { cache: "no-store" });
+    console.log("[dashboard] fetching /data.json");
+    const res  = await fetch("/data.json", { cache: "no-store" });
     if (!res.ok) { showError(`API ${res.status}`); return; }
     STATE.data = await res.json();
     console.log("[dashboard] data ok", { years: Object.keys(STATE.data.monthly_returns), aligned_pts: STATE.data.aligned.strategy_norm.length });
